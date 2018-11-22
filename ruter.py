@@ -4,13 +4,17 @@ import pandas as pd
 
 base_url = 'https://router.project-osrm.org/route/v1/foot/'
 
-test_skolekoordinat = (12.30752919, 55.73275526)
+test_skolekoordinat = '12.30752919,55.73275526'
 
 def read_data(filename):
     df = pd.read_csv(filename, sep=';', encoding='latin1')
     return df
 
-
+def beregn_rute(fra, til):
+    params = f'{fra};{til}?geometries=geojson&overview=full'
+    url = base_url + params
+    rute = requests.get(url).json()
+    return rute
 
 if __name__ == '__main__':
     data = read_data('export876867520626466480.csv')
@@ -23,6 +27,7 @@ if __name__ == '__main__':
         postnr = row['postnr']
 
         dawa_respons = pydawa.Adressesoeg(vejnavn, husnr, postnr, srid=4326).info()[0]
-        koordinater = (dawa_respons['x'], dawa_respons['y'])
+        koordinater = str(dawa_respons['x']) + ',' + str(dawa_respons['y'])
 
-        print(koordinater)
+        rute = beregn_rute(koordinater, test_skolekoordinat)
+        print(rute)
