@@ -8,6 +8,7 @@ requests = "*"
 pydawa = "*"
 pandas = "*"
 pylint = "*"
+rope = "*"
 
 [dev-packages]
 
