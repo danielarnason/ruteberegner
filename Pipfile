@@ -9,6 +9,8 @@ pydawa = "*"
 pandas = "*"
 pylint = "*"
 rope = "*"
+geojson = "*"
+tqdm = "*"
 
 [dev-packages]
 
