@@ -7,8 +7,6 @@ import re
 
 base_url = 'http://10.65.130.183:5000/route/v1/foot/'
 
-test_skolekoordinat = '12.30752919,55.73275526'
-
 def read_data(filename):
     df = pd.read_csv(filename, sep=';', encoding='latin1')
     return df
@@ -19,9 +17,14 @@ def beregn_rute(fra, til):
     rute = requests.get(url).json()
     return rute
 
+def get_skole_pkt(vejnavn, husnr, postnr):
+    adresse = pydawa.Adressesoeg(vejnavn, husnr, postnr, srid='4326').info()[0]
+    koordinat = f'{adresse["x"]},{adresse["y"]}'
+    return koordinat
+
 if __name__ == '__main__':
-    data = read_data('export876867520626466480.csv')
-    data = data.sample(n=300, random_state=42)
+    data = read_data('soeagerskolen.csv')
+    skole_koordinat = get_skole_pkt('Flodvej', '89', '2765')
 
     routes = {
         'features': [],
@@ -40,15 +43,21 @@ if __name__ == '__main__':
         if len(dawa_respons) > 0:
             koordinater = str(dawa_respons[0]['x']) + ',' + str(dawa_respons[0]['y'])
 
-            osrm_data = beregn_rute(koordinater, test_skolekoordinat)
+            osrm_data = beregn_rute(koordinater, skole_koordinat)
             rute_geom = osrm_data['routes'][0]['geometry']
             feature = {
                 'geometry': rute_geom,
                 'id': idx,
-                'properties': {},
+                'properties': {
+                    'id': idx,
+                    'distance': osrm_data['routes'][0]['distance'],
+                    'duration': osrm_data['routes'][0]['duration'],
+                    'klassetrin': row['klassetrin'],
+                    # 'er_transportberettiget': row['er_transportberettiget']
+                },
                 'type': 'Feature',
             }
             routes['features'].append(feature)
 
-    with open('test.geojson', 'w') as output:
+    with open('soeagerskolen_boesagerskolen_ruter.geojson', 'w') as output:
         json.dump(routes, output)
